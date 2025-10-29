@@ -7,6 +7,7 @@ import {
   FaFileAlt,
   FaUserCircle,
   FaBars,
+  FaFileInvoiceDollar,
 } from "react-icons/fa";
 import { motion } from "framer-motion";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
@@ -23,6 +24,8 @@ export default function AdminDashboard() {
     { name: "Reports", icon: <FaFileAlt />, path: "/admin/report" },
     { name: "Payments", icon: <FaMoneyBillWave />, path: "/admin/payments" },
     { name: "Users & Roles", icon: <FaUsersCog />, path: "/admin/users" },
+    { name: "Commission Report", icon: <FaFileInvoiceDollar />, path: "/admin/commissionreport" },
+
     { name: "Profile", icon: <FaUserCircle />, path: "/admin/profilecompany" },
 
   ];

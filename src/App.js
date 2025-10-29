@@ -21,6 +21,7 @@ import Payments from "./pages/Admin/Payments";
 import Report from "./pages/Admin/Report";
 import Users from "./pages/Admin/Users";
 import ProfileCompany from "./pages/Admin/ProfileCompany";
+import CommissionReport from "./pages/Admin/CommissionReport";
 
 function PrivateRoute({ allowedRole, children }) {
   const { user } = useAuth();
@@ -59,6 +60,8 @@ export default function App() {
               <Route path="payments" element={<Payments />} />
               <Route path="report" element={<Report />} />
               <Route path="users" element={<Users />} />
+              <Route path="commissionreport" element={<CommissionReport />} />
+
               <Route path="profilecompany" element={<ProfileCompany />} />
 
 

@@ -9,13 +9,17 @@ const availableRoles = {
 };
 
 export default function Users() {
-  const [users, setUsers] = useState([
+// Add `clients` field to each user
+const [users, setUsers] = useState([
     {
       id: 1,
       name: "Luqman Rubi",
       email: "rubi@gmail.com",
       status: "Active",
       roles: ["Admin"],
+      commissionEarned: 0,
+      commissionStatus: "N/A",
+      clients: 0,
     },
     {
       id: 2,
@@ -23,6 +27,9 @@ export default function Users() {
       email: "jane@gmail.com",
       status: "Active",
       roles: ["Manager"],
+      commissionEarned: 0,
+      commissionStatus: "N/A",
+      clients: 2,
     },
     {
       id: 3,
@@ -30,6 +37,9 @@ export default function Users() {
       email: "michael@gmail.com",
       status: "Inactive",
       roles: ["Staff"],
+      commissionEarned: 120,
+      commissionStatus: "Pending",
+      clients: 6,
     },
     {
       id: 4,
@@ -37,6 +47,9 @@ export default function Users() {
       email: "sarah@gmail.com",
       status: "Active",
       roles: ["Support", "Staff"],
+      commissionEarned: 75,
+      commissionStatus: "Paid",
+      clients: 3,
     },
     {
       id: 5,
@@ -44,8 +57,12 @@ export default function Users() {
       email: "david@gmail.com",
       status: "Inactive",
       roles: [],
+      commissionEarned: 0,
+      commissionStatus: "N/A",
+      clients: 0,
     },
   ]);
+  
 
   const [newRoles, setNewRoles] = useState({});
   const [search, setSearch] = useState("");
@@ -82,7 +99,7 @@ export default function Users() {
 
   return (
     <div className="p-8">
-      <h2 className="text-3xl font-bold mb-6">Users & Roles</h2>
+      <h2 className="text-3xl font-bold mb-6">Users, Roles & Commissions</h2>
 
       <input
         type="text"
@@ -110,6 +127,16 @@ export default function Users() {
               </th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
                 Permissions
+              </th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
+  Clients
+</th>
+
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                Commission Earned
+              </th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                Commission Status
               </th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
                 Actions
@@ -160,6 +187,26 @@ export default function Users() {
                         .map((role) => availableRoles[role]?.join(", "))
                         .join("; ")
                     : "-"}
+                </td>
+                <td className="px-6 py-4 text-sm font-medium text-gray-900">
+  {user.clients}
+</td>
+
+                <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                  ${user.commissionEarned}
+                </td>
+                <td className="px-6 py-4">
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                      user.commissionStatus === "Paid"
+                        ? "bg-green-100 text-green-700"
+                        : user.commissionStatus === "Pending"
+                        ? "bg-yellow-100 text-yellow-700"
+                        : "bg-gray-100 text-gray-700"
+                    }`}
+                  >
+                    {user.commissionStatus}
+                  </span>
                 </td>
                 <td className="px-6 py-4 flex gap-2">
                   {user.roles.includes("Admin") ? (
