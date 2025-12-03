@@ -22,6 +22,7 @@ import Report from "./pages/Admin/Report";
 import Users from "./pages/Admin/Users";
 import ProfileCompany from "./pages/Admin/ProfileCompany";
 import CommissionReport from "./pages/Admin/CommissionReport";
+import Hotel from "./pages/Staff/Hotel";
 
 function PrivateRoute({ allowedRole, children }) {
   const { user } = useAuth();
@@ -82,6 +83,8 @@ export default function App() {
               <Route index element={<DashboardHome />} />
               <Route path="clients" element={<Clients />} />
               <Route path="reports" element={<Reports />} />
+              <Route path="hotel" element={<Hotel />} />
+
 
             </Route>
 

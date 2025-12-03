@@ -8,6 +8,7 @@ import {
   FaClock,
   FaTimesCircle,
   FaBars,
+  FaHotel
 } from "react-icons/fa";
 import { motion } from "framer-motion";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
@@ -23,7 +24,9 @@ export default function StaffDashboard() {
     { name: "Dashboard", icon: <FaChartLine />, path: "/staff" },
     { name: "Bookings", icon: <FaClipboardList />, path: "/staff/bookings" },
     { name: "Clients", icon: <FaUsers />, path: "/staff/clients" },
+    { name: "Hotel", icon: <FaHotel />, path: "/staff/hotel" },
     { name: "Reports", icon: <FaPlaneDeparture />, path: "/staff/reports" },
+
   ];
 
   // … keep your metrics, bookings, etc. arrays here …

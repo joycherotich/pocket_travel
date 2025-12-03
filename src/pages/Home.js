@@ -43,9 +43,9 @@ export default function Home() {
             guides and unmatched luxury.
           </p>
 
-          <button className="mt-10 bg-yellow-600 hover:bg-yellow-700 text-white px-10 py-4 rounded-xl text-lg font-semibold shadow-2xl transition-transform hover:scale-105">
+          {/* <button className="mt-10 bg-yellow-600 hover:bg-yellow-700 text-white px-10 py-4 rounded-xl text-lg font-semibold shadow-2xl transition-transform hover:scale-105">
             Request a Quote
-          </button>
+          </button> */}
         </motion.div>
 
         {/* Floating Chat Button */}

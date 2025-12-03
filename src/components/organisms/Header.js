@@ -32,15 +32,15 @@ export default function Header() {
           <a href="#" className="hover:text-yellow-600 transition-all duration-200 hover:-translate-y-[1px]">
             Holidays
           </a>
-          <a href="#" className="hover:text-yellow-600 transition-all duration-200 hover:-translate-y-[1px]">
+          {/* <a href="#" className="hover:text-yellow-600 transition-all duration-200 hover:-translate-y-[1px]">
             Corporates
-          </a>
-          <a href="#" className="hover:text-yellow-600 transition-all duration-200 hover:-translate-y-[1px]">
+          </a> */}
+          {/* <a href="#" className="hover:text-yellow-600 transition-all duration-200 hover:-translate-y-[1px]">
             Local
           </a>
           <a href="#" className="hover:text-yellow-600 transition-all duration-200 hover:-translate-y-[1px]">
             Blog
-          </a>
+          </a> */}
         </nav>
 
         {/* ===== Right Buttons ===== */}
