@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-// import { ToastContainer, toast } from "react-toastify";
-// import "react-toastify/dist/ReactToastify.css";
+
 export default function Users() {
   const [users, setUsers] = useState([]);
+  const [roles, setRoles] = useState([]); // ✅ roles from backend
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -11,10 +11,10 @@ export default function Users() {
     name: "",
     email: "",
     password: "",
-    role: "customer",
+    role: "",
   });
 
-  // Fetch users from API (you'll need to implement this API)
+  /* ================= FETCH USERS ================= */
   const fetchUsers = async () => {
     setLoading(true);
     setError(null);
@@ -22,7 +22,6 @@ export default function Users() {
       const res = await fetch("http://localhost:5000/api/users");
       if (!res.ok) throw new Error("Failed to fetch users");
       const data = await res.json();
-      console.log("Fetched users:", data); // <-- add this
       setUsers(data);
     } catch (err) {
       setError(err.message);
@@ -30,17 +29,37 @@ export default function Users() {
       setLoading(false);
     }
   };
-  
-  useEffect(() => {
-    fetchUsers();
-  }, []);
 
-  // Handle form input changes
-  const handleChange = (e) => {
-    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  /* ================= FETCH ROLES ================= */
+  const fetchRoles = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/api/roles");
+      if (!res.ok) throw new Error("Failed to fetch roles");
+      const data = await res.json();
+      setRoles(data);
+
+      // Auto-select first role
+      if (data.length > 0) {
+        setFormData((prev) => ({ ...prev, role: data[0].name }));
+      }
+    } catch (err) {
+      console.error(err.message);
+    }
   };
 
-  // Submit new user creation
+  useEffect(() => {
+    fetchUsers();
+    fetchRoles();
+  }, []);
+
+  /* ================= FORM HANDLERS ================= */
+  const handleChange = (e) => {
+    setFormData((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
@@ -57,23 +76,17 @@ export default function Users() {
         throw new Error(errData.message || "Failed to create user");
       }
 
-      // toast.success("User created successfully!");
-
-      // Clear form
-      setFormData({ name: "", email: "", password: "", role: "customer" });
+      setFormData({ name: "", email: "", password: "", role: roles[0]?.name || "" });
       setModalOpen(false);
-
-      // Refresh user list
       fetchUsers();
     } catch (err) {
       setError(err.message);
-      // toast.error(err.message);
     }
   };
 
 
   return (
-    <div className="p-6 max-w-5xl mx-auto font-sans">
+    <div className="p-6 max-w-5xl mx-auto font-[Poppins]">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-yellow-700">Manage Users</h1>
         <button
@@ -184,15 +197,18 @@ export default function Users() {
               <div>
                 <label className="block font-semibold mb-1">Role</label>
                 <select
-                  name="role"
-                  value={formData.role}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded px-3 py-2"
-                >
-                  <option value="customer">Customer</option>
-                  <option value="staff">Staff</option>
-                  <option value="admin">Admin</option>
-                </select>
+                name="role"
+                value={formData.role}
+                onChange={handleChange}
+                required
+                className="w-full border rounded px-3 py-2 capitalize"
+              >
+                {roles.map((role) => (
+                  <option key={role._id} value={role.name}>
+                    {role.name}
+                  </option>
+                ))}
+              </select>
               </div>
 
               <button
