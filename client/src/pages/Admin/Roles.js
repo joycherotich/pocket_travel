@@ -6,6 +6,10 @@ export default function Roles() {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [privModalOpen, setPrivModalOpen] = useState(false);
+const [selectedRole, setSelectedRole] = useState(null);
+const [allPrivileges, setAllPrivileges] = useState([]);
+
 
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
@@ -48,6 +52,40 @@ export default function Roles() {
   // Handle new role modal input change
   const handleNewRoleChange = (e) => setNewRole(e.target.value);
 
+  const openPrivileges = (role) => {
+    setSelectedRole(role);
+    fetchPrivileges();
+    setPrivModalOpen(true);
+  };
+  
+
+  
+  const fetchPrivileges = async () => {
+    const res = await fetch("http://localhost:5000/api/roles/privileges/all");
+    const data = await res.json();
+    setAllPrivileges(data);
+  };
+  
+
+  const togglePrivilege = async (privilege, checked) => {
+    await fetch(
+      `http://localhost:5000/api/roles/${selectedRole._id}/privileges`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ privilege, enabled: checked }),
+      }
+    );
+  
+    // Update UI instantly
+    setSelectedRole((prev) => ({
+      ...prev,
+      privileges: checked
+        ? [...prev.privileges, privilege]
+        : prev.privileges.filter((p) => p !== privilege),
+    }));
+  };
+  
   // Handle form submit to create new role
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -167,12 +205,13 @@ export default function Roles() {
                     </button>
                   </td>
                   <td className="border border-gray-300 px-6 py-4 text-center">
-                    <button
+                  <button
                       className="text-yellow-600 hover:text-yellow-800 font-semibold"
-                      onClick={() => alert(`Manage privileges for: ${role.name}`)}
+                      onClick={() => openPrivileges(role)}
                     >
                       Privileges
                     </button>
+
                   </td>
                 </tr>
               ))
@@ -237,6 +276,44 @@ export default function Roles() {
           </div>
         </div>
       )}
+      {privModalOpen && selectedRole && (
+  <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+    <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg">
+      <h2 className="text-2xl font-bold mb-4 text-yellow-700">
+        Privileges – {selectedRole.name}
+      </h2>
+
+      <div className="space-y-3 max-h-96 overflow-y-auto">
+        {allPrivileges.map((priv) => (
+          <label
+            key={priv}
+            className="flex items-center gap-3 cursor-pointer"
+          >
+            <input
+              type="checkbox"
+              checked={selectedRole.privileges?.includes(priv)}
+              onChange={(e) =>
+                togglePrivilege(priv, e.target.checked)
+              }
+              className="w-4 h-4 accent-yellow-600"
+            />
+            <span className="capitalize">{priv.replace(".", " ")}</span>
+          </label>
+        ))}
+      </div>
+
+      <div className="flex justify-end mt-6">
+        <button
+          onClick={() => setPrivModalOpen(false)}
+          className="px-4 py-2 border rounded hover:bg-gray-100"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
     </div>
   );
 }

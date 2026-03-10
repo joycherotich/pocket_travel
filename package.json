@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "nodemailer": "^8.0.1",
     "react-toastify": "^11.0.5"
   }
 }

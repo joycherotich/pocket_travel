@@ -1,221 +1,195 @@
 import React, { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 
 export default function Users() {
   const [users, setUsers] = useState([]);
-  const [roles, setRoles] = useState([]); // ✅ roles from backend
+  const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
 
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    role: "",
-  });
+  const [formData, setFormData] = useState({ name: "", email: "", role: "" });
 
-  /* ================= FETCH USERS ================= */
   const fetchUsers = async () => {
-    setLoading(true);
-    setError(null);
+    setLoading(true); setError(null);
     try {
       const res = await fetch("http://localhost:5000/api/users");
       if (!res.ok) throw new Error("Failed to fetch users");
-      const data = await res.json();
-      setUsers(data);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
+      setUsers(await res.json());
+    } catch (err) { setError(err.message); }
+    finally { setLoading(false); }
   };
 
-  /* ================= FETCH ROLES ================= */
   const fetchRoles = async () => {
     try {
       const res = await fetch("http://localhost:5000/api/roles");
       if (!res.ok) throw new Error("Failed to fetch roles");
       const data = await res.json();
       setRoles(data);
-
-      // Auto-select first role
-      if (data.length > 0) {
-        setFormData((prev) => ({ ...prev, role: data[0].name }));
-      }
-    } catch (err) {
-      console.error(err.message);
-    }
+      if (data.length > 0) setFormData((p) => ({ ...p, role: data[0]._id }));
+    } catch (err) { console.error(err.message); }
   };
 
-  useEffect(() => {
-    fetchUsers();
-    fetchRoles();
-  }, []);
+  useEffect(() => { fetchUsers(); fetchRoles(); }, []);
 
-  /* ================= FORM HANDLERS ================= */
-  const handleChange = (e) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
+  // ── Resolve role name for any user ──────────────────────────────────────────
+  // Handles three cases:
+  //   1. role is already a populated object  → { _id, name }
+  //   2. role is an ObjectId string          → "698208d4f66e7610cb727941"
+  //   3. role is a plain string              → "admin"
+  const resolveRoleName = (userRole) => {
+    if (!userRole) return "Unknown";
+    // Case 1 – populated object
+    if (typeof userRole === "object" && userRole.name) return userRole.name;
+    // Case 2 – ObjectId string: look up in roles array by _id
+    const byId = roles.find((r) => r._id === userRole);
+    if (byId) return byId.name;
+    // Case 3 – plain string like "admin": look up by name (case-insensitive)
+    const byName = roles.find(
+      (r) => r.name.toLowerCase() === String(userRole).toLowerCase()
+    );
+    if (byName) return byName.name;
+    // Fallback – return whatever the value is
+    return String(userRole);
   };
+
+  const ROLE_COLORS = {
+    admin:    "bg-red-100 text-red-700",
+    staff:    "bg-blue-100 text-blue-700",
+    finance:  "bg-purple-100 text-purple-700",
+    customer: "bg-green-100 text-green-700",
+  };
+
+  const handleChange = (e) =>
+    setFormData((p) => ({ ...p, [e.target.name]: e.target.value }));
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError(null);
-
+    e.preventDefault(); setError(null);
     try {
       const res = await fetch("http://localhost:5000/api/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ name: formData.name, email: formData.email, roleId: formData.role }),
       });
-
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.message || "Failed to create user");
-      }
-
-      setFormData({ name: "", email: "", password: "", role: roles[0]?.name || "" });
+      const data = await res.json();
+      if (!res.ok) { toast.error(data.message || "Failed to create user"); return; }
+      toast.success("User created & credentials sent to email 📧");
+      setFormData({ name: "", email: "", role: roles[0]?._id || "" });
       setModalOpen(false);
       fetchUsers();
-    } catch (err) {
-      setError(err.message);
-    }
+    } catch { toast.error("Server error"); }
   };
-
 
   return (
     <div className="p-6 max-w-5xl mx-auto font-[Poppins]">
+
+      {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-yellow-700">Manage Users</h1>
-        <button
-          onClick={() => setModalOpen(true)}
-          className="bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-2 px-5 rounded shadow-md transition"
-        >
-          Create User
+        <button onClick={() => setModalOpen(true)}
+          className="bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-2 px-5 rounded shadow-md transition">
+          + Create User
         </button>
       </div>
-      {/* User List */}
-      <h2 className="text-xl font-semibold mb-2">Existing Users</h2>
+
+      <h2 className="text-xl font-semibold mb-3">Existing Users</h2>
+
       {loading ? (
-        <p>Loading users...</p>
+        <p className="text-gray-500">Loading users...</p>
       ) : error ? (
         <p className="text-red-600">{error}</p>
+      ) : users.length === 0 ? (
+        <p className="text-gray-400 italic">No users found.</p>
       ) : (
-        <table className="w-full border-collapse border border-gray-200">
-          <thead>
-            <tr className="bg-yellow-100">
-              <th className="border border-gray-300 px-4 py-2 text-left">Name</th>
-              <th className="border border-gray-300 px-4 py-2 text-left">Email</th>
-              <th className="border border-gray-300 px-4 py-2 text-left">Role</th>
-            </tr>
-          </thead>
-          <tbody>
-  {users.map((u) => {
-    if (!u || typeof u.name !== "string") return null;
+        <div className="overflow-x-auto rounded-xl shadow-sm">
+          <table className="w-full border-collapse border border-gray-200 rounded-xl overflow-hidden">
+            <thead>
+              <tr className="bg-yellow-100">
+                <th className="border border-gray-200 px-4 py-3 text-left text-gray-700 font-semibold">#</th>
+                <th className="border border-gray-200 px-4 py-3 text-left text-gray-700 font-semibold">Name</th>
+                <th className="border border-gray-200 px-4 py-3 text-left text-gray-700 font-semibold">Email</th>
+                <th className="border border-gray-200 px-4 py-3 text-left text-gray-700 font-semibold">Role</th>
+                <th className="border border-gray-200 px-4 py-3 text-left text-gray-700 font-semibold">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((u, i) => {
+                if (!u) return null;
+                const roleName = resolveRoleName(u.role);
+                const roleColor = ROLE_COLORS[roleName.toLowerCase()] || "bg-gray-100 text-gray-700";
 
-    const parts = u.name.trim().split(" ");
-    const role = u.role || (parts.length > 1 ? parts.pop().toLowerCase() : "unknown");
-    const name = u.role ? u.name : parts.join(" ");
-
-    return (
-      <tr key={u._id || u.email || Math.random()}>
-        <td className="border border-gray-300 px-4 py-2">{name}</td>
-        <td className="border border-gray-300 px-4 py-2">{u.email || "N/A"}</td>
-        <td className="border border-gray-300 px-4 py-2 capitalize">{role}</td>
-      </tr>
-    );
-  })}
-</tbody>
-
-
-        </table>
+                return (
+                  <tr key={u._id} className="hover:bg-yellow-50 transition">
+                    <td className="border border-gray-200 px-4 py-3 text-gray-400 text-sm">{i + 1}</td>
+                    <td className="border border-gray-200 px-4 py-3 font-medium text-gray-800">{u.name}</td>
+                    <td className="border border-gray-200 px-4 py-3 text-gray-600">{u.email || "N/A"}</td>
+                    <td className="border border-gray-200 px-4 py-3">
+                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full capitalize ${roleColor}`}>
+                        {roleName}
+                      </span>
+                    </td>
+                    <td className="border border-gray-200 px-4 py-3">
+                      {u.mustChangePassword ? (
+                        <span className="bg-red-100 text-red-700 text-xs font-semibold px-2.5 py-1 rounded-full">
+                          Temp Password
+                        </span>
+                      ) : (
+                        <span className="bg-green-100 text-green-700 text-xs font-semibold px-2.5 py-1 rounded-full">
+                          Active
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       )}
 
-{modalOpen && (
-        <div
-          onClick={() => setModalOpen(false)}
-          className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50"
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative"
-          >
-            <button
-              onClick={() => setModalOpen(false)}
-              className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 font-bold text-xl"
-              aria-label="Close modal"
-            >
+      {/* Create User Modal */}
+      {modalOpen && (
+        <div onClick={() => setModalOpen(false)}
+          className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
+          <div onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md relative">
+            <button onClick={() => setModalOpen(false)}
+              className="absolute top-3 right-4 text-gray-400 hover:text-gray-700 text-2xl font-bold">
               &times;
             </button>
-
-            <h2 className="text-2xl font-semibold mb-4 text-yellow-700">Create New User</h2>
-
+            <h2 className="text-2xl font-semibold mb-1 text-yellow-700">Create New User</h2>
+            <p className="text-sm text-gray-500 mb-5">
+              A temporary password will be generated and emailed to the user.
+            </p>
             <form onSubmit={handleSubmit} className="space-y-4">
-              {error && <p className="text-red-600 font-semibold">{error}</p>}
-
+              {error && <p className="text-red-600 font-semibold text-sm">{error}</p>}
               <div>
-                <label className="block font-semibold mb-1">Name</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  className="w-full border border-gray-300 rounded px-3 py-2"
-                  placeholder="Full name"
-                />
+                <label className="block font-semibold mb-1 text-sm">Full Name</label>
+                <input type="text" name="name" value={formData.name} onChange={handleChange} required
+                  placeholder="e.g. Jane Mwangi"
+                  className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400" />
               </div>
-
               <div>
-                <label className="block font-semibold mb-1">Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  className="w-full border border-gray-300 rounded px-3 py-2"
-                  placeholder="user@example.com"
-                />
+                <label className="block font-semibold mb-1 text-sm">Email Address</label>
+                <input type="email" name="email" value={formData.email} onChange={handleChange} required
+                  placeholder="jane@example.com"
+                  className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400" />
               </div>
-
               <div>
-                <label className="block font-semibold mb-1">Password</label>
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                  className="w-full border border-gray-300 rounded px-3 py-2"
-                  placeholder="••••••••"
-                />
+                <label className="block font-semibold mb-1 text-sm">Role</label>
+                <select name="role" value={formData.role} onChange={handleChange} required
+                  className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400">
+                  {roles.map((r) => (
+                    <option key={r._id} value={r._id}>{r.name}</option>
+                  ))}
+                </select>
               </div>
-
-              <div>
-                <label className="block font-semibold mb-1">Role</label>
-                <select
-                name="role"
-                value={formData.role}
-                onChange={handleChange}
-                required
-                className="w-full border rounded px-3 py-2 capitalize"
-              >
-                {roles.map((role) => (
-                  <option key={role._id} value={role.name}>
-                    {role.name}
-                  </option>
-                ))}
-              </select>
-              </div>
-
-              <button
-                type="submit"
-                className="w-full bg-yellow-600 text-white py-2 rounded hover:bg-yellow-700 transition"
-              >
-                Create User
+              <p className="text-xs text-gray-400 flex items-center gap-1">
+                🔑 A secure temporary password will be auto-generated and sent to the user's email.
+              </p>
+              <button type="submit"
+                className="w-full bg-yellow-600 text-white py-2.5 rounded hover:bg-yellow-700 transition font-semibold">
+                Create User & Send Email
               </button>
             </form>
           </div>
