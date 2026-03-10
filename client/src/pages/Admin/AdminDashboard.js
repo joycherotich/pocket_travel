@@ -8,6 +8,7 @@ import {
   FaUserCircle,
   FaBars,
   FaFileInvoiceDollar,
+  FaHotel,
 } from "react-icons/fa";
 import { motion } from "framer-motion";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
@@ -18,41 +19,32 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // On mount, read user from sessionStorage
   useEffect(() => {
     const storedUser = sessionStorage.getItem("user");
     if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (err) {
-        console.error("Failed to parse user from sessionStorage", err);
-      }
+      try { setUser(JSON.parse(storedUser)); }
+      catch (err) { console.error("Failed to parse user from sessionStorage", err); }
     }
   }, []);
 
-  // Check if user has a privilege, admin has all access
   const hasPrivilege = (privilege) => {
     if (!user || !user.role) return false;
-  
     if (user.role === "admin") return true;
-  
-    // If you later add privileges array inside role object, adjust here:
     if (!user.role.privileges) return false;
-  
     return user.role.privileges.includes(privilege);
   };
-  
 
   const menuItems = [
-    { name: "Dashboard", icon: <FaTachometerAlt />, path: "/admin/dashboardadmin", privilege: "viewDashboard" },
-    { name: "Manage Packages", icon: <FaUsersCog />, path: "/admin/managepackages", privilege: "managePackages" },
-    { name: "Clients", icon: <FaUsers />, path: "/admin/client", privilege: "manageClients" },
-    { name: "Reports", icon: <FaFileAlt />, path: "/admin/report", privilege: "viewReports" },
-    { name: "Payments", icon: <FaMoneyBillWave />, path: "/admin/payments", privilege: "managePayments" },
-    { name: "Portal Users", icon: <FaUsersCog />, path: "/admin/users", privilege: "manageUsers" },
-    { name: "Roles & Priviledges", icon: <FaUsersCog />, path: "/admin/roles", privilege: "manageUsers" },
-    { name: "Commission Report", icon: <FaFileInvoiceDollar />, path: "/admin/commissionreport", privilege: "viewReports" },
-    { name: "Profile", icon: <FaUserCircle />, path: "/admin/profilecompany", privilege: null }, // no restriction
+    { name: "Dashboard",         icon: <FaTachometerAlt />,      path: "/admin/dashboardadmin",   privilege: "viewDashboard"  },
+    { name: "Manage Packages",   icon: <FaUsersCog />,           path: "/admin/managepackages",   privilege: "managePackages" },
+    { name: "Clients",           icon: <FaUsers />,              path: "/admin/client",           privilege: "manageClients"  },
+    { name: "Hotels",            icon: <FaHotel />,              path: "/admin/hotel",            privilege: "manageClients"  },
+    { name: "Reports",           icon: <FaFileAlt />,            path: "/admin/report",           privilege: "viewReports"    },
+    { name: "Payments",          icon: <FaMoneyBillWave />,      path: "/admin/payments",         privilege: "managePayments" },
+    { name: "Portal Users",      icon: <FaUsersCog />,           path: "/admin/users",            privilege: "manageUsers"    },
+    { name: "Roles & Privileges",icon: <FaUsersCog />,           path: "/admin/roles",            privilege: "manageUsers"    },
+    { name: "Commission Report", icon: <FaFileInvoiceDollar />,  path: "/admin/commissionreport", privilege: "viewReports"    },
+    { name: "Profile",           icon: <FaUserCircle />,         path: "/admin/profilecompany",   privilege: null             },
   ];
 
   return (
@@ -69,16 +61,13 @@ export default function AdminDashboard() {
           <h1 className={`text-lg font-bold ${!sidebarOpen && "hidden"}`}>
             🌴 Admin Portal
           </h1>
-          <FaBars
-            className="cursor-pointer"
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-          />
+          <FaBars className="cursor-pointer" onClick={() => setSidebarOpen(!sidebarOpen)} />
         </div>
 
         <nav className="flex-1 space-y-3">
           {menuItems
-            .filter((item) => !item.privilege || hasPrivilege(item.privilege))
-            .map((item) => (
+            .filter(item => !item.privilege || hasPrivilege(item.privilege))
+            .map(item => (
               <div
                 key={item.name}
                 onClick={() => navigate(item.path)}
@@ -99,11 +88,7 @@ export default function AdminDashboard() {
         </div>
       </motion.aside>
 
-      <div
-        className={`flex-1 p-6 md:p-10 transition-all duration-300 ${
-          sidebarOpen ? "ml-64" : "ml-20"
-        }`}
-      >
+      <div className={`flex-1 p-6 md:p-10 transition-all duration-300 ${sidebarOpen ? "ml-64" : "ml-20"}`}>
         <Outlet />
       </div>
     </div>
