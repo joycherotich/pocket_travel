@@ -45,7 +45,7 @@ router.post("/", async (req, res) => {
       name,
       email,
       password: tempPassword,
-      role: role._id,
+      role: role.name.toLowerCase(), // ← "staff", "admin", "user"
       mustChangePassword: true,
     });
 
@@ -80,10 +80,11 @@ router.put("/:id/role", async (req, res) => {
     if (!role)
       return res.status(400).json({ message: "Invalid role" });
 
-    const user = await User.findByIdAndUpdate(
-      req.params.id,
-      { role: role._id },
-      { new: true }
+  const user = await User.findByIdAndUpdate(
+  req.params.id,
+  { role: role.name.toLowerCase() },  // ← "staff", "admin", "user"
+  { new: true }
+
     ).populate("role", "name privileges");
 
     if (!user)

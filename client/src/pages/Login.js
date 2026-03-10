@@ -287,7 +287,6 @@ export default function Login() {
                   {isLogin ? "Sign Up" : "Sign In"}
                 </button>
               </p> */}
-
               {/* Trust badges */}
               <div className="flex justify-center gap-4 mt-8 pt-6 border-t border-gray-50">
                 {["🔒 Secure Login", "🌍 50+ Destinations", "🎒 Easy Booking"].map((badge) => (
