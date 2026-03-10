@@ -277,7 +277,7 @@ export default function Login() {
               </div>
 
               {/* Switch mode */}
-              <p className="text-center text-sm text-gray-400">
+              {/* <p className="text-center text-sm text-gray-400">
                 {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
                 <button
                   type="button"
@@ -286,7 +286,7 @@ export default function Login() {
                 >
                   {isLogin ? "Sign Up" : "Sign In"}
                 </button>
-              </p>
+              </p> */}
 
               {/* Trust badges */}
               <div className="flex justify-center gap-4 mt-8 pt-6 border-t border-gray-50">
