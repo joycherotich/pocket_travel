@@ -5,8 +5,9 @@ const userSchema = new mongoose.Schema({
   name:     { type: String, required: true },
   email:    { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  role: { type: String, enum: ['user', 'staff', 'admin'], default: 'user' },
+  role: { type: String, enum: ['user', 'staff', 'admin', 'finance', 'customer'], default: 'user' },
   mustChangePassword: { type: Boolean, default: false },
+  commissionRate: { type: Number, default: 0.10 }, // used by commissions route
 }, { timestamps: true });
 
 // ✅ No "next" parameter — just async/await with return

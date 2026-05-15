@@ -1,18 +1,16 @@
 import express from "express";
-import crypto from "crypto";          // ← THIS is likely missing
+import crypto from "crypto";
 import User from "../models/User.js";
 import Role from "../models/Role.js";
 import { sendWelcomeEmail } from "../config/mailer.js";
-// import bcrypt from "bcryptjs";   // ← THIS was missing
 import bcrypt from "bcryptjs";
-
 
 const router = express.Router();
 
 /* ── GET /api/users ── */
 router.get("/", async (req, res) => {
   try {
-    const users = await User.find().populate("role", "name privileges");
+    const users = await User.find().select("-password");
     res.json(users);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -22,8 +20,6 @@ router.get("/", async (req, res) => {
 /* ── POST /api/users ── admin creates user */
 router.post("/", async (req, res) => {
   try {
-    console.log("REQ BODY:", req.body); // ← remove after debugging
-
     const { name, email, roleId } = req.body;
 
     if (!name || !email || !roleId)
@@ -39,13 +35,11 @@ router.post("/", async (req, res) => {
     // Generate BEFORE .create() — pre-save hook hashes it
     const tempPassword = crypto.randomBytes(8).toString("base64").slice(0, 10);
 
-    console.log("tempPassword:", tempPassword); // ← remove after debugging
-
     const user = await User.create({
       name,
       email,
       password: tempPassword,
-      role: role.name.toLowerCase(), // ← "staff", "admin", "user"
+      role: role.name.toLowerCase(),
       mustChangePassword: true,
     });
 
@@ -66,7 +60,7 @@ router.post("/", async (req, res) => {
       },
     });
   } catch (err) {
-    console.error("CREATE USER ERROR:", err.message); // ← shows exact cause
+    console.error("CREATE USER ERROR:", err.message);
     res.status(500).json({ message: err.message });
   }
 });
@@ -80,12 +74,11 @@ router.put("/:id/role", async (req, res) => {
     if (!role)
       return res.status(400).json({ message: "Invalid role" });
 
-  const user = await User.findByIdAndUpdate(
-  req.params.id,
-  { role: role.name.toLowerCase() },  // ← "staff", "admin", "user"
-  { new: true }
-
-    ).populate("role", "name privileges");
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { role: role.name.toLowerCase() },
+      { new: true }
+    ).select("-password");
 
     if (!user)
       return res.status(404).json({ message: "User not found" });
@@ -96,7 +89,8 @@ router.put("/:id/role", async (req, res) => {
   }
 });
 
-// PUT /api/auth/change-password
+/* ── PUT /api/users/change-password ── */
+// NOTE: This route must be defined BEFORE /:id routes to avoid being swallowed
 router.put("/change-password", async (req, res) => {
   try {
     const { email, tempPassword, newPassword, confirmPassword } = req.body;

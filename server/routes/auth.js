@@ -9,9 +9,7 @@ router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    // ← populate role to get name string
-   
-   const user = await User.findOne({ email });
+    const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ message: 'Invalid credentials' });
 
     const isMatch = await bcrypt.compare(password, user.password);
@@ -23,9 +21,8 @@ router.post('/login', async (req, res) => {
       { expiresIn: '1d' }
     );
 
-    // ← verify these print correctly in terminal
-    console.log("role name:", user.role?.name);
-    console.log("mustChangePassword:", user.mustChangePassword);
+    // role is stored as a plain string on User
+    const roleName = typeof user.role === 'object' ? user.role?.name : user.role;
 
     res.json({
       token,
@@ -33,8 +30,8 @@ router.post('/login', async (req, res) => {
         id:                  user._id,
         name:                user.name,
         email:               user.email,
-        role:                user.role ?? null,        // ← "admin" not ObjectId
-        mustChangePassword:  user.mustChangePassword ?? false, // ← true/false
+        role:                roleName ?? null,
+        mustChangePassword:  user.mustChangePassword ?? false,
       },
     });
   } catch (error) {
